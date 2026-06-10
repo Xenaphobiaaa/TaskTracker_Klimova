@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TaskTracker.Core\TaskTracker.Core.csproj" />
+    <ProjectReference Include="..\TaskTracker.storage\TaskTracker.storage.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,24 @@
 ﻿using TaskTracker.Core.Models;
 using TaskTracker.Core.Services;
+using TaskTracker.Storage.Services;
+
 
 var service = new TaskService();
+
+// Путь к файлу данных рядом с приложением (в папке запуска)
+var dataFilePath = Path.Combine(AppContext.BaseDirectory, "data", "tasks.json");
+
+// Хранилище JSON
+var storage = new JsonTaskStorage(dataFilePath);
+
+// Загружаем задачи из файла
+var loadedTasks = storage.Load();
+
+// Создаём сервис с уже загруженными задачами
+var service1 = new TaskService(loadedTasks);
+
+Console.WriteLine($"Данные: {dataFilePath}");
+Console.WriteLine($"Загружено задач: {loadedTasks.Count}");
 
 static bool TryReadInt(string prompt, out int value)
 {
@@ -40,7 +57,9 @@ while (true)
         // Валидация: нельзя пустое
         try
         {
-            var task = service.Add(title);
+            var task = service1.Add(title);
+            storage.Save(service.GetAll());
+
             Console.WriteLine($"Задача добавлена: #{task.Id} {task.Title} [{task.Status}]");
         }
         catch (ArgumentException ex)
@@ -52,7 +71,7 @@ while (true)
 
     if (input == "2")
     {
-        var tasks = service.GetAll();
+        var tasks = service1.GetAll();
 
         if (tasks.Count == 0)
         {
@@ -70,7 +89,7 @@ while (true)
 
     if (input == "3")
     {
-        var tasks = service.GetAll();
+        var tasks = service1.GetAll();
         if (tasks.Count == 0)
         {
             Console.WriteLine("Список задач пуст. Нечего менять.");
@@ -109,6 +128,8 @@ while (true)
         try
         {
             var updated = service.ChangeStatus(id, newStatus);
+            storage.Save(service1.GetAll());
+
             Console.WriteLine($"Статус изменён: #{updated.Id} {updated.Title} [{updated.Status}]");
         }
         catch (ArgumentException ex)
@@ -121,7 +142,7 @@ while (true)
 
     if (input == "4")
     {
-        var tasks = service.GetAll();
+        var tasks = service1.GetAll();
         if (tasks.Count == 0)
         {
             Console.WriteLine("Список задач пуст. Нечего удалять.");
@@ -150,6 +171,8 @@ while (true)
         try
         {
             service.Delete(id);
+            storage.Save(service1.GetAll());
+
             Console.WriteLine($"Задача с Id={id} удалена.");
         }
         catch (ArgumentException ex)

@@ -4,9 +4,15 @@ namespace TaskTracker.Core.Services;
 
 public class TaskService
 {
-    private readonly List<TaskItem> _tasks = new();
-    private int _nextId = 1;
+    private readonly List<TaskItem> _tasks;
+    private int _nextId;
+    public TaskService(List<TaskItem>? initialTasks = null)
+    {
+        _tasks = initialTasks ?? new List<TaskItem>();
 
+        // следующий Id = максимальный Id + 1
+        _nextId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
+    }
     public TaskItem Add(string title)
     {
         if (string.IsNullOrWhiteSpace(title))
