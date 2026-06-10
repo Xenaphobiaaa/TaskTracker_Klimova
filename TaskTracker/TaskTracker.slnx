@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="TaskTracker.App/TaskTracker.App.csproj" />
   <Project Path="TaskTracker.Core/TaskTracker.Core.csproj" />
+  <Project Path="TaskTracker.storage/TaskTracker.storage.csproj" Id="ed800933-f5e3-44a2-b072-f200f4b83e08" />
 </Solution>
