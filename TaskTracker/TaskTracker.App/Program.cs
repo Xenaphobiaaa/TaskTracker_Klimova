@@ -3,7 +3,7 @@ using TaskTracker.Core.Services;
 using TaskTracker.Storage.Services;
 
 
-var service = new TaskService();
+var service1 = new TaskService();
 
 // Путь к файлу данных рядом с приложением (в папке запуска)
 var dataFilePath = Path.Combine(AppContext.BaseDirectory, "data", "tasks.json");
@@ -14,8 +14,6 @@ var storage = new JsonTaskStorage(dataFilePath);
 // Загружаем задачи из файла
 var loadedTasks = storage.Load();
 
-// Создаём сервис с уже загруженными задачами
-var service1 = new TaskService(loadedTasks);
 
 Console.WriteLine($"Данные: {dataFilePath}");
 Console.WriteLine($"Загружено задач: {loadedTasks.Count}");
@@ -58,7 +56,7 @@ while (true)
         try
         {
             var task = service1.Add(title);
-            storage.Save(service.GetAll());
+            storage.Save(service1.GetAll());
 
             Console.WriteLine($"Задача добавлена: #{task.Id} {task.Title} [{task.Status}]");
         }
@@ -130,7 +128,7 @@ while (true)
 
         try
         {
-            var updated = service.ChangeStatus(id, newStatus);
+            var updated = service1.ChangeStatus(id, newStatus);
             storage.Save(service1.GetAll());
 
             Console.WriteLine($"Статус изменён: #{updated.Id} {updated.Title} [{updated.Status}]");
@@ -173,7 +171,7 @@ while (true)
 
         try
         {
-            service.Delete(id);
+            service1.Delete(id);
             storage.Save(service1.GetAll());
 
             Console.WriteLine($"Задача с Id={id} удалена.");

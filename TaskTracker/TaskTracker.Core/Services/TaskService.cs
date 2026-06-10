@@ -4,15 +4,9 @@ namespace TaskTracker.Core.Services;
 
 public class TaskService
 {
-    private readonly List<TaskItem> _tasks;
-    private int _nextId;
-    public TaskService(List<TaskItem>? initialTasks = null)
-    {
-        _tasks = initialTasks ?? new List<TaskItem>();
+    private readonly List<TaskItem> _tasks = new();
+    private int _nextId = 1;
 
-        // следующий Id = максимальный Id + 1
-        _nextId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
-    }
     public TaskItem Add(string title)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -53,6 +47,18 @@ public class TaskService
     {
         var task = GetExisting(id);
         _tasks.Remove(task);
+    }
+    public TaskItem Update(int id, string newTitle, string newDescription)
+    {
+        if (string.IsNullOrWhiteSpace(newTitle))
+            throw new ArgumentException("Название не может быть пустым.");
+
+        var task = GetExisting(id);
+
+        task.Title = newTitle.Trim();
+        task.Description = (newDescription ?? "").Trim();
+
+        return task;
     }
 
 
