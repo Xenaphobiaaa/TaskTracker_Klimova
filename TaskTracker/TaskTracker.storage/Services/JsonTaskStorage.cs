@@ -14,6 +14,7 @@ public class JsonTaskStorage
 
     public List<TaskItem> Load()
     {
+
         // Если файла нет — возвращаем пустой список (это НЕ ошибка)
         if (!File.Exists(_filePath))
             return new List<TaskItem>();
@@ -29,6 +30,7 @@ public class JsonTaskStorage
             // Если файл повреждён — не падаем, начинаем с пустого списка
             return new List<TaskItem>();
         }
+    
     }
 
     public void Save(List<TaskItem> tasks)
