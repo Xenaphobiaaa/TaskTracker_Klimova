@@ -1,5 +1,6 @@
 ﻿using TaskTracker.Core.Models;
 using TaskTracker.Core.Validation;
+using TaskTracker.Core.Reports;
 
 namespace TaskTracker.Core.Services;
 
@@ -118,5 +119,20 @@ public class TaskService
         _nextId = _tasks.Count == 0 ? 1 : _tasks.Max(t => t.Id) + 1;
     }
 
+    public TaskStats GetStats()
+    {
+        var stats = new TaskStats();
+
+        stats.Total = _tasks.Count;
+
+        foreach (var t in _tasks)
+        {
+            if (t.Status == Models.TaskStatus.New) stats.NewCount++;
+            else if (t.Status == Models.TaskStatus.InProgress) stats.InProgressCount++;
+            else if (t.Status == Models.TaskStatus.Done) stats.DoneCount++;
+        }
+
+        return stats;
+    }
 
 }
