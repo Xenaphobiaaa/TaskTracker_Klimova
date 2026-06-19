@@ -1,7 +1,7 @@
 ﻿using TaskTracker.Core.Models;
 using TaskTracker.Core.Services;
 using TaskTracker.Storage.Services;
-
+using TaskTracker.Core.Validation;
 
 var service1 = new TaskService();
 
@@ -416,6 +416,21 @@ while (true)
         {
             var importStorage = new JsonTaskStorage(importPath);
             var importedTasks = importStorage.Load();
+
+            // Валидация импортируемых задач
+            for (int i = 0; i < importedTasks.Count; i++)
+            {
+                var t = importedTasks[i];
+
+                var error = TaskValidator.Validate(t);
+                if (error != null)
+                {
+                    Console.WriteLine($"Ошибка импорта: задача #{i + 1} не прошла проверку: {error}");
+                    Console.WriteLine("Импорт отменён.");
+                    continue;
+                }
+            }
+
 
             // Заменяем задачи в сервисе
             service1.ReplaceAll(importedTasks);
