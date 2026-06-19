@@ -60,6 +60,38 @@ public class TaskService
 
         return task;
     }
+    public List<TaskItem> SearchByTitle(string query)
+    {
+        query ??= "";
+        query = query.Trim();
+
+        if (query.Length == 0)
+            return GetAll();
+
+        return _tasks
+            .Where(t => (t.Title ?? "").Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+    public List<TaskItem> FilterByStatus(Models.TaskStatus? status1)
+    {
+        if (status1 is null)
+            return GetAll(); // null = All
+
+        return _tasks.Where(t => t.Status == status1).ToList();
+    }
+    public List<TaskItem> SortById(bool ascending = true)
+    {
+        return ascending
+            ? _tasks.OrderBy(t => t.Id).ToList()
+            : _tasks.OrderByDescending(t => t.Id).ToList();
+    }
+    public List<TaskItem> SortByStatusThenId()
+    {
+        return _tasks
+            .OrderBy(t => t.Status)
+            .ThenBy(t => t.Id)
+            .ToList();
+    }
 
 
 }
