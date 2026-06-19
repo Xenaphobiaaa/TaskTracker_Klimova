@@ -1,4 +1,5 @@
 ﻿using TaskTracker.Core.Models;
+using TaskTracker.Core.Validation;
 
 namespace TaskTracker.Core.Services;
 
@@ -9,19 +10,26 @@ public class TaskService
 
     public TaskItem Add(string title)
     {
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException("Название не может быть пустым.");
-
         var task = new TaskItem
         {
-            Id = _nextId++,
-            Title = title.Trim(),
-            Status = TaskTracker.Core.Models.TaskStatus.New
+            Id = _nextId,
+            Title = title ?? "",
+            Description = "",
+            Status = Models.TaskStatus.New
         };
 
+        var error = TaskValidator.Validate(task);
+        if (error != null)
+            throw new ArgumentException(error);
+
+        task.Title = task.Title.Trim();
+
         _tasks.Add(task);
+        _nextId++;
+
         return task;
     }
+
 
     public List<TaskItem> GetAll()
     {
@@ -50,16 +58,23 @@ public class TaskService
     }
     public TaskItem Update(int id, string newTitle, string newDescription)
     {
-        if (string.IsNullOrWhiteSpace(newTitle))
-            throw new ArgumentException("Название не может быть пустым.");
-
         var task = GetExisting(id);
 
-        task.Title = newTitle.Trim();
-        task.Description = (newDescription ?? "").Trim();
+        // временно присваиваем новые значения
+        task.Title = newTitle ?? "";
+        task.Description = newDescription ?? "";
+
+        var error = TaskValidator.Validate(task);
+        if (error != null)
+            throw new ArgumentException(error);
+
+        // нормализуем (Trim)
+        task.Title = task.Title.Trim();
+        task.Description = (task.Description ?? "").Trim();
 
         return task;
     }
+
     public List<TaskItem> SearchByTitle(string query)
     {
         query ??= "";
