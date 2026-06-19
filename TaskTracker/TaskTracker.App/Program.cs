@@ -7,6 +7,9 @@ var service1 = new TaskService();
 
 // Путь к файлу данных рядом с приложением (в папке запуска)
 var dataFilePath = Path.Combine(AppContext.BaseDirectory, "data", "tasks.json");
+var backupsFolder = Path.Combine(AppContext.BaseDirectory, "backups");
+var exportsFolder = Path.Combine(AppContext.BaseDirectory, "exports");
+
 
 // Хранилище JSON
 var storage = new JsonTaskStorage(dataFilePath);
@@ -56,6 +59,9 @@ while (true)
     Console.WriteLine("6) Поиск по названию");
     Console.WriteLine("7) Фильтр по статусу");
     Console.WriteLine("8) Сортировка списка");
+    Console.WriteLine("9) Сделать резервную копию (backup)");
+    Console.WriteLine("10) Экспорт в файл (export)");
+    Console.WriteLine("11) Импорт из файла (import)");
     Console.WriteLine("0) Выход");
     Console.WriteLine("----------------");
     Console.Write("Выберите пункт меню: ");
@@ -316,6 +322,114 @@ while (true)
         }
 
         PrintTasks(sorted);
+        continue;
+    }
+
+    if (input == "9")
+    {
+        try
+        {
+            // Сохраним текущие данные на всякий случай
+            storage.Save(service1.GetAll());
+
+            var backupPath = BackupService.CreateBackup(dataFilePath, backupsFolder);
+            Console.WriteLine("Бэкап создан: " + backupPath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка backup: " + ex.Message);
+        }
+
+        continue;
+    }
+
+    if (input == "10")
+    {
+        try
+        {
+            Directory.CreateDirectory(exportsFolder);
+
+            var exportFile = Path.Combine(
+                exportsFolder,
+                $"tasks_export_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.json"
+            );
+
+            var exportStorage = new JsonTaskStorage(exportFile);
+            exportStorage.Save(service1.GetAll());
+
+            Console.WriteLine("Экспорт выполнен: " + exportFile);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка export: " + ex.Message);
+        }
+
+        continue;
+    }
+
+    if (input == "11")
+    {
+        Console.WriteLine("Импорт заменит текущий список задач!");
+        Console.Write("Введите путь к JSON-файлу для импорта: ");
+        var importPath = (Console.ReadLine() ?? "").Trim();
+
+        if (string.IsNullOrWhiteSpace(importPath))
+        {
+            Console.WriteLine("Ошибка: путь пустой.");
+            continue;
+        }
+
+        if (!File.Exists(importPath))
+        {
+            Console.WriteLine("Ошибка: файл не найден: " + importPath);
+            continue;
+        }
+
+        Console.Write("Сделать backup перед импортом? (y/n): ");
+        var backupAnswer = (Console.ReadLine() ?? "").Trim().ToLower();
+
+        if (backupAnswer == "y")
+        {
+            try
+            {
+                storage.Save(service1.GetAll());
+                var backupPath = BackupService.CreateBackup(dataFilePath, backupsFolder);
+                Console.WriteLine("Backup создан: " + backupPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Не удалось сделать backup: " + ex.Message);
+                Console.WriteLine("Импорт отменён (без backup опасно).");
+                continue;
+            }
+        }
+
+        Console.Write("Точно импортировать и заменить задачи? (y/n): ");
+        var sure = (Console.ReadLine() ?? "").Trim().ToLower();
+        if (sure != "y")
+        {
+            Console.WriteLine("Импорт отменён.");
+            continue;
+        }
+
+        try
+        {
+            var importStorage = new JsonTaskStorage(importPath);
+            var importedTasks = importStorage.Load();
+
+            // Заменяем задачи в сервисе
+            service1.ReplaceAll(importedTasks);
+
+            // Сохраняем в основной файл data/tasks.json
+            storage.Save(service1.GetAll());
+
+            Console.WriteLine("Импорт выполнен. Загружено задач: " + importedTasks.Count);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка import: " + ex.Message);
+        }
+
         continue;
     }
 
